@@ -6,11 +6,16 @@ WORKDIR /usr/src/app
 # Copy package files
 COPY package*.json ./
 
+# Change ownership to pptruser (the default user in puppeteer image)
+USER root
+RUN chown -R pptruser:pptruser /usr/src/app
+USER pptruser
+
 # Install dependencies
 RUN npm install
 
 # Copy app source
-COPY . .
+COPY --chown=pptruser:pptruser . .
 
 # Set environment variables
 ENV NODE_ENV=production
