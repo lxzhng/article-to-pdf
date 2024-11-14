@@ -22,27 +22,45 @@ async function fetchArticleContent(url) {
         });
 
         // Parse the content with Readability
-        const dom = new JSDOM(response.data);
+        const dom = new JSDOM(response.data, {
+            url: url // This helps resolve relative URLs
+        });
         const reader = new Readability(dom.window.document);
         const article = reader.parse();
 
-        // Process links into footnotes using cheerio
+        // Process links and images using cheerio
         const $ = cheerio.load(article.content);
         const footnotes = [];
         
         // Remove share buttons and related elements
         $('button:contains("Share")').remove();
         $('.share-button').remove();
-        $('[class*="share"]').remove(); // Removes elements with 'share' in their class name
-        $('[id*="share"]').remove();    // Removes elements with 'share' in their id
+        $('[class*="share"]').remove();
+        $('[id*="share"]').remove();
         
-        // Convert links to footnotes
+        // Process images: convert relative URLs to absolute
+        $('img').each((i, elem) => {
+            const $img = $(elem);
+            const src = $img.attr('src');
+            if (src) {
+                // Convert relative URLs to absolute
+                const absoluteUrl = new URL(src, url).href;
+                $img.attr('src', absoluteUrl);
+                
+                // Add loading="lazy" to improve performance
+                $img.attr('loading', 'lazy');
+                
+                // Add a container div for better styling
+                $img.wrap('<div class="image-container"></div>');
+            }
+        });
+
+        // Convert links to footnotes (existing code)
         $('a').each((i, elem) => {
             const $link = $(elem);
             const href = $link.attr('href');
             const linkText = $link.text();
             
-            // Skip if it's a share link or button
             if (linkText.toLowerCase().includes('share') || 
                 href?.toLowerCase().includes('share') ||
                 linkText.trim() === '') {
@@ -51,15 +69,11 @@ async function fetchArticleContent(url) {
             }
             
             const footnoteIndex = footnotes.length + 1;
-            
-            // Replace link with text and footnote reference
             $link.replaceWith(`${linkText}<sup>[${footnoteIndex}]</sup>`);
-            
-            // Store footnote
             footnotes.push(`[${footnoteIndex}] ${href}`);
         });
 
-        // Add references section to the content
+        // Add references section
         if (footnotes.length > 0) {
             $('body').append(`
                 <div class="references">
@@ -107,7 +121,25 @@ async function convertWebpageToPDF(webUrl, authorName) {
                         padding-top: 20px;
                     }
                     sup { color: #666; }
-                    img { max-width: 100%; height: auto; }
+                    .image-container {
+                        margin: 20px 0;
+                        text-align: center;
+                    }
+                    img { 
+                        max-width: 100%; 
+                        height: auto;
+                        display: block;
+                        margin: 0 auto;
+                    }
+                    figure {
+                        margin: 20px 0;
+                        text-align: center;
+                    }
+                    figcaption {
+                        color: #666;
+                        font-size: 0.9em;
+                        margin-top: 5px;
+                    }
                 </style>
             </head>
             <body>
