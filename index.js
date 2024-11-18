@@ -32,12 +32,6 @@ async function fetchArticleContent(url) {
         const $ = cheerio.load(article.content);
         const footnotes = [];
 
-        // Remove share buttons and related elements
-        $('button:contains("Share")').remove();
-        $('.share-button').remove();
-        $('[class*="share"]').remove();
-        $('[id*="share"]').remove();
-
         // Process images: convert relative URLs to absolute
         $('img').each((i, elem) => {
             const $img = $(elem);
@@ -50,12 +44,26 @@ async function fetchArticleContent(url) {
             }
         });
 
-        // Handle footnotes
-        $('a[href^="#ftn"]').each((i, elem) => {
-            const $link = $(elem);
-            // Either remove or rewrite these links based on your preference
-            $link.remove(); // Simply remove existing footnote references
+        // Collect existing footnote content
+        const existingFootnotes = [];
+        $('[id^="ftn"]').each((i, elem) => {
+            const $footnote = $(elem);
+            const id = $footnote.attr('id');
+            const content = $footnote.text();
+            existingFootnotes.push({ id, content });
         });
+
+        // Append existing footnotes to references section
+        if (existingFootnotes.length > 0) {
+            $('body').append(`
+                <div class="references">
+                    <h2>Existing Footnotes</h2>
+                    ${existingFootnotes.map(footnote => `
+                        <p><strong>${footnote.id}:</strong> ${footnote.content}</p>
+                    `).join('\n')}
+                </div>
+            `);
+        }
 
         // Convert regular links to footnotes
         $('a').each((i, elem) => {
@@ -75,7 +83,7 @@ async function fetchArticleContent(url) {
             footnotes.push(`[${footnoteIndex}] ${href}`);
         });
 
-        // Add references section
+        // Add new references section
         if (footnotes.length > 0) {
             $('body').append(`
                 <div class="references">
