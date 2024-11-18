@@ -31,49 +31,45 @@ async function fetchArticleContent(url) {
         // Process links and images using cheerio
         const $ = cheerio.load(article.content);
         const footnotes = [];
-        
+
         // Remove share buttons and related elements
         $('button:contains("Share")').remove();
         $('.share-button').remove();
         $('[class*="share"]').remove();
         $('[id*="share"]').remove();
-        
+
         // Process images: convert relative URLs to absolute
         $('img').each((i, elem) => {
             const $img = $(elem);
             const src = $img.attr('src');
             if (src) {
-                // Convert relative URLs to absolute
                 const absoluteUrl = new URL(src, url).href;
                 $img.attr('src', absoluteUrl);
-                
-                // Log the absolute URL for debugging
-                console.log('Image URL:', absoluteUrl);
-                
-                // Add loading="lazy" to improve performance
-                $img.attr('loading', 'lazy');
-                
-                // Add a container div for better styling
-                $img.wrap('<div class="image-container"></div>');
             } else {
-                // If src is missing, remove the image
                 $img.remove();
             }
         });
 
-        // Convert links to footnotes (existing code)
+        // Handle footnotes
+        $('a[href^="#ftn"]').each((i, elem) => {
+            const $link = $(elem);
+            // Either remove or rewrite these links based on your preference
+            $link.remove(); // Simply remove existing footnote references
+        });
+
+        // Convert regular links to footnotes
         $('a').each((i, elem) => {
             const $link = $(elem);
             const href = $link.attr('href');
             const linkText = $link.text();
-            
+
             if (linkText.toLowerCase().includes('share') || 
                 href?.toLowerCase().includes('share') ||
                 linkText.trim() === '') {
                 $link.remove();
                 return;
             }
-            
+
             const footnoteIndex = footnotes.length + 1;
             $link.replaceWith(`${linkText}<sup>[${footnoteIndex}]</sup>`);
             footnotes.push(`[${footnoteIndex}] ${href}`);
