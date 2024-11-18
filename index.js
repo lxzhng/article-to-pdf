@@ -107,7 +107,7 @@ async function convertWebpageToPDF(webUrl, authorName) {
                 <meta charset="UTF-8">
                 <style>
                     body { 
-                        font-family: Arial, sans-serif; 
+                        font-family: serif; 
                         max-width: 800px; 
                         margin: 0 auto; 
                         padding: 20px;
@@ -120,7 +120,10 @@ async function convertWebpageToPDF(webUrl, authorName) {
                         border-top: 1px solid #ccc;
                         padding-top: 20px;
                     }
-                    sup { color: #666; }
+                    sup { 
+                        color: #666; 
+                        text-decoration: none; /* Remove box around superscripts */
+                    }
                     .image-container {
                         margin: 20px 0;
                         text-align: center;
@@ -216,13 +219,21 @@ const server = http.createServer(async (req, res) => {
     } else if (req.method === 'GET' && queryObject.url) {
         try {
             console.log('Converting URL:', queryObject.url);
+            const article = await fetchArticleContent(queryObject.url);
             const pdf = await convertWebpageToPDF(
                 queryObject.url, 
                 queryObject.author || 'Unknown Author'
             );
-            
+
+            // Create a safe filename from the article title
+            const safeTitle = article.title
+                .replace(/[^a-z0-9]/gi, '_') // Replace non-alphanumeric chars with underscore
+                .replace(/_+/g, '_')         // Replace multiple underscores with single
+                .toLowerCase()
+                .substring(0, 50);           // Limit length
+
             res.setHeader('Content-Type', 'application/pdf');
-            res.setHeader('Content-Disposition', 'attachment; filename=article.pdf');
+            res.setHeader('Content-Disposition', `attachment; filename="${safeTitle}.pdf"`);
             res.end(pdf);
         } catch (error) {
             console.error('Error:', error);

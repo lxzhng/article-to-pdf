@@ -1,20 +1,29 @@
 {
-  "name": "pdf-converter",
+  "name": "article-to-pdf",
   "version": "1.0.0",
+  "description": "Web service to convert online articles to PDF with references",
   "main": "index.js",
-  "scripts": {
-    "test": "echo \"Error: no test specified\" && exit 1"
+  "engines": {
+    "node": ">=18.x"
   },
-  "keywords": [],
-  "author": "",
-  "license": "ISC",
-  "description": "",
+  "scripts": {
+    "start": "node index.js",
+    "dev": "node index.js"
+  },
+  "keywords": [
+    "pdf",
+    "converter",
+    "articles",
+    "web-service"
+  ],
+  "author": "Your Name",
+  "license": "MIT",
   "dependencies": {
-    "@mozilla/readability": "^0.5.0",
-    "axios": "^1.7.7",
+    "@mozilla/readability": "^0.4.4",
+    "axios": "^1.6.7",
     "cheerio": "^1.0.0",
-    "jsdom": "^25.0.1",
-    "puppeteer": "^23.8.0",
+    "jsdom": "^24.0.0",
+    "puppeteer": "^21.11.0",
     "puppeteer-extra": "^3.3.6",
     "puppeteer-extra-plugin-stealth": "^2.11.2"
   }
