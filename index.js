@@ -166,8 +166,28 @@ async function convertWebpageToPDF(webUrl, authorName) {
         });
 
         const page = await browser.newPage();
-        await page.setContent(cleanHtml, { waitUntil: 'networkidle0' });
-        
+        await page.setContent(cleanHtml, { waitUntil: 'networkidle2' });
+
+        // Scroll through the page to trigger lazy loading
+        await page.evaluate(async () => {
+            await new Promise((resolve) => {
+                let totalHeight = 0;
+                const distance = 100;
+                const timer = setInterval(() => {
+                    const scrollHeight = document.body.scrollHeight;
+                    window.scrollBy(0, distance);
+                    totalHeight += distance;
+                    if (totalHeight >= scrollHeight) {
+                        clearInterval(timer);
+                        resolve();
+                    }
+                }, 100);
+            });
+        });
+
+        // Wait for images to load
+        await page.waitForTimeout(2000);
+
         // Generate PDF
         const pdf = await page.pdf({
             format: 'A4',
