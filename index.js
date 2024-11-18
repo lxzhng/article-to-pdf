@@ -47,11 +47,17 @@ async function fetchArticleContent(url) {
                 const absoluteUrl = new URL(src, url).href;
                 $img.attr('src', absoluteUrl);
                 
+                // Log the absolute URL for debugging
+                console.log('Image URL:', absoluteUrl);
+                
                 // Add loading="lazy" to improve performance
                 $img.attr('loading', 'lazy');
                 
                 // Add a container div for better styling
                 $img.wrap('<div class="image-container"></div>');
+            } else {
+                // If src is missing, remove the image
+                $img.remove();
             }
         });
 
