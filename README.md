@@ -14,7 +14,7 @@ A web service that converts online articles to clean, readable PDFs with properl
 
 1. Clone the repository: 
 
-git clone https://github.com/yourusername/article-to-pdf.git
+git clone https://github.com/lxzhng/article-to-pdf.git
 cd article-to-pdf
 
 2. Install dependencies:
